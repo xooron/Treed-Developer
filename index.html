@@ -68,9 +68,9 @@
         .step-text p { font-size: 12px; color: var(--text-dim); }
 
         /* ОТЗЫВЫ */
-        .review-box { background: #111; padding: 15px; border-radius: 20px; border: 1px solid var(--glass-border); margin-bottom: 10px; position: relative; }
+        .review-box { background: #111; padding: 15px; border-radius: 20px; border: 1px solid var(--glass-border); margin-bottom: 10px; position: relative; text-align: left; }
         .rev-header { color: var(--accent-blue); font-weight: 700; font-size: 0.85rem; }
-        .rev-text { font-size: 0.85rem; color: #ccc; margin-top: 4px; }
+        .rev-text { font-size: 0.85rem; color: #ccc; margin-top: 4px; line-height: 1.4; }
         .del-btn { position: absolute; right: 15px; top: 15px; color: var(--admin-red); font-size: 14px; cursor: pointer; display: none; }
 
         /* АДМИН ПАНЕЛЬ */
@@ -145,7 +145,7 @@
     <!-- СТРАНИЦА: ОТЗЫВЫ -->
     <main class="page" id="p_rev">
         <div id="rev_container">
-            <!-- Отзывы будут здесь -->
+            <!-- Отзывы -->
         </div>
         <div class="leave-rev-section">
             <textarea id="rev_input" rows="3" placeholder="Ваш отзыв..."></textarea>
@@ -156,7 +156,10 @@
 
     <!-- АДМИН -->
     <main class="page" id="p_admin">
-        <h3 style="margin-bottom: 20px;">Список заказов</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>Список заказов</h3>
+            <i class="fas fa-trash-alt" style="color: var(--admin-red); font-size: 14px;" onclick="clearAllOrders()"></i>
+        </div>
         <div id="admin_orders">
             <p style="color: #555; text-align: center;">Заказов пока нет</p>
         </div>
@@ -196,7 +199,7 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        const MY_ADMIN_ID = 774146644; // ТВОЙ ID
+        const MY_ADMIN_ID = 774146644; 
         const LIMIT = 5 * 60 * 60 * 1000;
         tg.expand();
 
@@ -212,8 +215,8 @@
             document.getElementById('admin-tab').style.display = 'flex';
         }
 
-        // 2. ОТЗЫВЫ (Общие для всех)
-        let publicReviews = [
+        // 2. ОТЗЫВЫ С СОХРАНЕНИЕМ
+        let publicReviews = JSON.parse(localStorage.getItem('treed_reviews')) || [
             {id: 1, name: "Artem", text: "Лучший разработчик, сделал бота за день!"},
             {id: 2, name: "Viktoria", text: "Дизайн Mini App просто космос, спасибо!"}
         ];
@@ -232,22 +235,15 @@
                 `;
                 container.prepend(div);
             });
+            localStorage.setItem('treed_reviews', JSON.stringify(publicReviews));
         }
-        renderReviews();
 
         function postReview() {
             const inp = document.getElementById('rev_input');
             if(!inp.value.trim()) return;
-            
-            const newRev = {
-                id: Date.now(),
-                name: nick,
-                text: inp.value
-            };
-            
+            const newRev = { id: Date.now(), name: nick, text: inp.value };
             publicReviews.push(newRev);
             renderReviews();
-            
             inp.value = "";
             localStorage.setItem('last_rev_treed', Date.now());
             tg.HapticFeedback.notificationOccurred('success');
@@ -263,34 +259,48 @@
             });
         }
 
-        // 3. ЗАКАЗЫ (Для админа)
-        const orders = [];
+        // 3. ЗАКАЗЫ С СОХРАНЕНИЕМ
+        let orders = JSON.parse(localStorage.getItem('treed_orders')) || [];
+
         function sendOrder() {
             const tz = document.getElementById('tz').value;
             const bud = document.getElementById('budget').value;
             const cur = document.getElementById('curr').value;
             if(!tz || !bud) return tg.showAlert("Заполните поля!");
 
-            const order = { user: nick, tz: tz, price: `${bud} ${cur}`, time: new Date().toLocaleTimeString() };
+            const order = { id: Date.now(), user: nick, tz: tz, price: `${bud} ${cur}`, time: new Date().toLocaleString() };
             orders.push(order);
+            localStorage.setItem('treed_orders', JSON.stringify(orders));
+            
             renderAdmin();
-
             tg.HapticFeedback.notificationOccurred('success');
             toggleModal('orderModal', false);
-            setTimeout(() => {
-                toggleModal('successModal', true);
-            }, 300);
+            setTimeout(() => toggleModal('successModal', true), 300);
         }
 
         function renderAdmin() {
             const cont = document.getElementById('admin_orders');
-            if(!orders.length) return;
+            if(!orders.length) {
+                cont.innerHTML = '<p style="color: #555; text-align: center;">Заказов пока нет</p>';
+                return;
+            }
             cont.innerHTML = '';
             orders.forEach(o => {
                 const div = document.createElement('div');
                 div.className = 'admin-order';
                 div.innerHTML = `<b>${o.user}</b><p>${o.tz}</p><small>${o.price} | ${o.time}</small>`;
                 cont.prepend(div);
+            });
+        }
+
+        function clearAllOrders() {
+            if(!isAdmin) return;
+            tg.showConfirm("Очистить весь список заказов?", (ok) => {
+                if(ok) {
+                    orders = [];
+                    localStorage.setItem('treed_orders', JSON.stringify(orders));
+                    renderAdmin();
+                }
             });
         }
 
@@ -302,6 +312,7 @@
             document.getElementById(pId).classList.add('active');
             el.classList.add('active');
             if(pId === 'p_rev') updateTimer();
+            if(pId === 'p_admin') renderAdmin();
         }
 
         function toggleModal(id, show) {
@@ -326,6 +337,9 @@
             };
             run();
         }
+
+        // Инициализация при загрузке
+        renderReviews();
         updateTimer();
     </script>
 </body>
