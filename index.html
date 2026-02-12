@@ -71,12 +71,13 @@
         .review-box { background: #111; padding: 15px; border-radius: 20px; border: 1px solid var(--glass-border); margin-bottom: 10px; position: relative; }
         .rev-header { color: var(--accent-blue); font-weight: 700; font-size: 0.85rem; }
         .rev-text { font-size: 0.85rem; color: #ccc; margin-top: 4px; }
-        .del-btn { position: absolute; right: 15px; top: 15px; color: var(--admin-red); display: none; }
+        .del-btn { position: absolute; right: 15px; top: 15px; color: var(--admin-red); font-size: 14px; cursor: pointer; display: none; }
 
         /* АДМИН ПАНЕЛЬ */
-        .admin-order { background: #1a1a1a; border-radius: 15px; padding: 15px; border-left: 4px solid var(--accent-blue); margin-bottom: 10px; }
-        .admin-order b { color: var(--accent-blue); font-size: 14px; }
-        .admin-order p { font-size: 12px; color: #eee; margin: 5px 0; }
+        .admin-order { background: #1a1a1a; border-radius: 15px; padding: 15px; border-left: 4px solid var(--accent-blue); margin-bottom: 10px; text-align: left; }
+        .admin-order b { color: var(--accent-blue); font-size: 14px; display: block; margin-bottom: 4px; }
+        .admin-order p { font-size: 12px; color: #eee; margin: 5px 0; line-height: 1.4; }
+        .admin-order small { color: #555; font-size: 10px; }
 
         /* НАВИГАЦИЯ (DOCK) */
         .nav-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; height: 70px; background: rgba(28, 28, 28, 0.95); backdrop-filter: blur(20px); border-radius: 35px; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-around; z-index: 1000; }
@@ -84,7 +85,7 @@
         .nav-btn.active { color: #fff; }
         .nav-btn i { font-size: 20px; }
         .nav-btn.center { width: 65px; height: 65px; background: var(--accent-blue); border-radius: 50%; color: white; justify-content: center; transform: translateY(-20px); box-shadow: 0 0 25px rgba(0, 163, 255, 0.4); border: 5px solid var(--bg-color); flex: none; }
-        #admin-tab { display: none; color: var(--admin-red); }
+        #admin-tab { display: none; }
 
         /* КНОПКИ И МОДАЛКИ */
         .btn-main { width: 100%; padding: 18px; background: var(--accent-blue); color: white; border: none; border-radius: 18px; font-weight: 700; text-transform: uppercase; font-size: 0.9rem; outline: none; }
@@ -112,11 +113,11 @@
         </div>
     </header>
 
-    <!-- ГЛАВНАЯ -->
+    <!-- СТРАНИЦА: ГЛАВНАЯ -->
     <main class="page active" id="p_home">
         <div class="stats-row">
             <div class="stat-card"><span>940+</span><p>Проектов</p></div>
-            <div class="stat-card"><span>6 лет</span><p>В коде</p></div>
+            <div class="stat-card"><span>7 лет</span><p>В коде</p></div>
             <div class="stat-card"><span>100%</span><p>Гарантия</p></div>
         </div>
         <h3 style="margin-bottom: 15px; font-size: 16px;">Услуги студии</h3>
@@ -126,7 +127,7 @@
         <button class="btn-main" style="margin-top: 10px;" onclick="toggleModal('orderModal', true)">Оформить заказ</button>
     </main>
 
-    <!-- ИНФО -->
+    <!-- СТРАНИЦА: ИНФО -->
     <main class="page" id="p_info">
         <h3 style="margin-bottom: 15px; font-size: 16px;">Условия работы</h3>
         <div class="list-item" style="--ic-color: #22c55e;"><div class="item-icon"><i class="fas fa-wallet"></i></div><div class="item-info"><div class="item-name">Оплата</div><div class="item-sub">После того как проект будет готов.</div></div></div>
@@ -141,10 +142,10 @@
         </div>
     </main>
 
-    <!-- ОТЗЫВЫ -->
+    <!-- СТРАНИЦА: ОТЗЫВЫ -->
     <main class="page" id="p_rev">
         <div id="rev_container">
-            <div class="review-box" id="r-default"><div class="rev-header">Система</div><div class="rev-text">Добро пожаловать в Studio Treed!</div></div>
+            <!-- Отзывы будут здесь -->
         </div>
         <div class="leave-rev-section">
             <textarea id="rev_input" rows="3" placeholder="Ваш отзыв..."></textarea>
@@ -186,7 +187,7 @@
     <!-- ОКНО УСПЕХА -->
     <div class="modal" id="successModal">
         <div class="modal-box">
-            <i class="fas fa-check-circle" style="font-size: 50px; color: #22c55e; margin-bottom: 20px;"></i>
+            <i class="fas fa-check-circle" style="font-size: 50px; color: #00ff88; margin-bottom: 20px;"></i>
             <h3 style="margin-bottom: 10px;">Заявка принята</h3>
             <p style="font-size: 14px; color: #ccc; line-height: 1.5;">Ваш заказ успешно отправлен, Ожидайте с вами свяжется Treed в ближайшее время</p>
             <button class="btn-main" style="margin-top: 25px;" onclick="toggleModal('successModal', false)">Понятно</button>
@@ -195,14 +196,15 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        const ADMIN_USER = 'treedexe'; 
+        const MY_ADMIN_ID = 774146644; // ТВОЙ ID
         const LIMIT = 5 * 60 * 60 * 1000;
         tg.expand();
 
+        // 1. ДАННЫЕ И ПРОВЕРКА АДМИНА
         const user = tg.initDataUnsafe?.user;
-        const isAdmin = user && user.username === ADMIN_USER;
-        let nick = user ? (user.username ? `@${user.username}` : user.first_name) : "Guest";
+        const isAdmin = user && Number(user.id) === MY_ADMIN_ID;
         
+        let nick = user ? (user.username ? `@${user.username}` : user.first_name) : "Guest";
         document.getElementById('u_name').innerText = nick;
         if(user?.photo_url) document.getElementById('u_pic').src = user.photo_url;
 
@@ -210,33 +212,42 @@
             document.getElementById('admin-tab').style.display = 'flex';
         }
 
-        function switchPage(pId, el) {
-            tg.HapticFeedback.impactOccurred('light');
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(pId).classList.add('active');
-            el.classList.add('active');
-            if(pId === 'p_rev') {
-                updateTimer();
-                if(isAdmin) document.querySelectorAll('.del-btn').forEach(b => b.style.display = 'block');
-            }
-        }
+        // 2. ОТЗЫВЫ (Общие для всех)
+        let publicReviews = [
+            {id: 1, name: "Artem", text: "Лучший разработчик, сделал бота за день!"},
+            {id: 2, name: "Viktoria", text: "Дизайн Mini App просто космос, спасибо!"}
+        ];
 
-        function toggleModal(id, show) {
-            tg.HapticFeedback.impactOccurred('medium');
-            document.getElementById(id).style.display = show ? 'flex' : 'none';
+        function renderReviews() {
+            const container = document.getElementById('rev_container');
+            container.innerHTML = '';
+            publicReviews.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'review-box';
+                div.id = 'rev-' + r.id;
+                div.innerHTML = `
+                    <div class="rev-header">${r.name}</div>
+                    <div class="rev-text">${r.text}</div>
+                    <i class="fas fa-trash del-btn" style="display:${isAdmin?'block':'none'}" onclick="deleteReview(${r.id})"></i>
+                `;
+                container.prepend(div);
+            });
         }
+        renderReviews();
 
         function postReview() {
             const inp = document.getElementById('rev_input');
             if(!inp.value.trim()) return;
-            const id = 'r' + Date.now();
-            const box = document.createElement('div');
-            box.className = 'review-box';
-            box.id = id;
-            box.innerHTML = `<div class="rev-header">${nick}</div><div class="rev-text">${inp.value}</div>
-            <i class="fas fa-trash del-btn" style="display:${isAdmin?'block':'none'}" onclick="deleteReview('${id}')"></i>`;
-            document.getElementById('rev_container').prepend(box);
+            
+            const newRev = {
+                id: Date.now(),
+                name: nick,
+                text: inp.value
+            };
+            
+            publicReviews.push(newRev);
+            renderReviews();
+            
             inp.value = "";
             localStorage.setItem('last_rev_treed', Date.now());
             tg.HapticFeedback.notificationOccurred('success');
@@ -244,9 +255,15 @@
         }
 
         function deleteReview(id) {
-            tg.showConfirm("Удалить отзыв?", (ok) => { if(ok) document.getElementById(id).remove(); });
+            tg.showConfirm("Удалить этот отзыв?", (ok) => {
+                if(ok) {
+                    publicReviews = publicReviews.filter(r => r.id !== id);
+                    renderReviews();
+                }
+            });
         }
 
+        // 3. ЗАКАЗЫ (Для админа)
         const orders = [];
         function sendOrder() {
             const tz = document.getElementById('tz').value;
@@ -254,14 +271,11 @@
             const cur = document.getElementById('curr').value;
             if(!tz || !bud) return tg.showAlert("Заполните поля!");
 
-            // Сохраняем в список админа
             const order = { user: nick, tz: tz, price: `${bud} ${cur}`, time: new Date().toLocaleTimeString() };
             orders.push(order);
             renderAdmin();
 
             tg.HapticFeedback.notificationOccurred('success');
-            
-            // Скрываем форму заказа и показываем окно успеха
             toggleModal('orderModal', false);
             setTimeout(() => {
                 toggleModal('successModal', true);
@@ -278,6 +292,21 @@
                 div.innerHTML = `<b>${o.user}</b><p>${o.tz}</p><small>${o.price} | ${o.time}</small>`;
                 cont.prepend(div);
             });
+        }
+
+        // 4. СИСТЕМНОЕ
+        function switchPage(pId, el) {
+            tg.HapticFeedback.impactOccurred('light');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(pId).classList.add('active');
+            el.classList.add('active');
+            if(pId === 'p_rev') updateTimer();
+        }
+
+        function toggleModal(id, show) {
+            tg.HapticFeedback.impactOccurred('medium');
+            document.getElementById(id).style.display = show ? 'flex' : 'none';
         }
 
         function updateTimer() {
